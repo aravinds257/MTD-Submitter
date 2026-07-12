@@ -1,8 +1,11 @@
 package com.mtdsubmitter.service;
 
+import com.mtdsubmitter.model.Business;
 import com.mtdsubmitter.model.IncomeRecord;
 import com.mtdsubmitter.model.TaxYear;
+import com.mtdsubmitter.repository.BusinessRepository;
 import com.mtdsubmitter.repository.IncomeRecordRepository;
+import com.mtdsubmitter.repository.TaxYearRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -20,11 +23,17 @@ import java.util.stream.Collectors;
 public class IncomeService {
 
     private final IncomeRecordRepository incomeRecordRepository;
+    private final BusinessRepository businessRepository;
+    private final TaxYearRepository taxYearRepository;
     private final AuditService auditService;
 
     public IncomeService(IncomeRecordRepository incomeRecordRepository,
+                         BusinessRepository businessRepository,
+                         TaxYearRepository taxYearRepository,
                          AuditService auditService) {
         this.incomeRecordRepository = incomeRecordRepository;
+        this.businessRepository = businessRepository;
+        this.taxYearRepository = taxYearRepository;
         this.auditService = auditService;
     }
 
@@ -54,9 +63,12 @@ public class IncomeService {
     public IncomeRecord addRecord(UUID userId, UUID businessId, Integer taxYearId,
                                    LocalDate transactionDate, BigDecimal amount,
                                    String incomeCategory, String description) {
+        Business business = businessRepository.getReferenceById(businessId);
+        TaxYear taxYear = taxYearRepository.getReferenceById(taxYearId);
+
         IncomeRecord record = IncomeRecord.builder()
-                .businessId(businessId)
-                .taxYearId(taxYearId)
+                .business(business)
+                .taxYear(taxYear)
                 .transactionDate(transactionDate)
                 .amount(amount)
                 .incomeCategory(incomeCategory)

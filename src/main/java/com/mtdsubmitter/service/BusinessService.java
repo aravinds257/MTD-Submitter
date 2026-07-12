@@ -2,9 +2,12 @@ package com.mtdsubmitter.service;
 
 import com.mtdsubmitter.model.Business;
 import com.mtdsubmitter.model.TaxYear;
+import com.mtdsubmitter.model.User;
+import com.mtdsubmitter.model.enums.AccountingType;
 import com.mtdsubmitter.model.enums.BusinessType;
 import com.mtdsubmitter.repository.BusinessRepository;
 import com.mtdsubmitter.repository.TaxYearRepository;
+import com.mtdsubmitter.repository.UserRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -20,13 +23,16 @@ public class BusinessService {
 
     private final BusinessRepository businessRepository;
     private final TaxYearRepository taxYearRepository;
+    private final UserRepository userRepository;
     private final AuditService auditService;
 
     public BusinessService(BusinessRepository businessRepository,
                            TaxYearRepository taxYearRepository,
+                           UserRepository userRepository,
                            AuditService auditService) {
         this.businessRepository = businessRepository;
         this.taxYearRepository = taxYearRepository;
+        this.userRepository = userRepository;
         this.auditService = auditService;
     }
 
@@ -41,11 +47,13 @@ public class BusinessService {
     @Transactional
     public Business createBusiness(UUID userId, String tradingName, BusinessType businessType,
                                    String accountingType, String description) {
+        User user = userRepository.getReferenceById(userId);
+
         Business business = Business.builder()
-                .userId(userId)
+                .user(user)
                 .tradingName(tradingName)
                 .businessType(businessType)
-                .accountingType(com.mtdsubmitter.model.enums.AccountingType.valueOf(accountingType))
+                .accountingType(AccountingType.valueOf(accountingType))
                 .description(description)
                 .isActive(true)
                 .build();
