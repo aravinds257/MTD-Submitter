@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout/main}">
+<head><title>Submission History</title></head>
+<body>
+<div layout:fragment="content">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2 class="fw-bold">Submission History</h2>
+    </div>
+
+    <div th:if="${#lists.isEmpty(submissions)}" class="card border-0 shadow-sm">
+        <div class="card-body text-center py-5">
+            <i class="bi bi-send-exclamation fs-1 text-muted mb-3"></i>
+            <h4>No submissions yet</h4>
+            <p class="text-muted">You haven't submitted any quarterly updates to HMRC yet.</p>
+            <a th:href="@{/dashboard}" class="btn btn-primary">Go to Dashboard</a>
+        </div>
+    </div>
+
+    <div th:if="${!#lists.isEmpty(submissions)}" class="card border-0 shadow-sm">
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Submitted Date</th>
+                            <th>Business</th>
+                            <th>Obligation Period</th>
+                            <th>HMRC ID</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr th:each="s : ${submissions}">
+                            <td th:text="${#temporals.format(s.submittedAt, 'dd MMM yyyy HH:mm')}">Date</td>
+                            <td th:text="${s.quarterlyPeriod.business.tradingName ?: s.quarterlyPeriod.business.businessType.displayLabel}">Business</td>
+                            <td>
+                                Quarter <span th:text="${s.quarterlyPeriod.quarterNumber}">1</span>
+                                (<span th:text="${#temporals.format(s.quarterlyPeriod.periodStart, 'd MMM')}"></span> -
+                                <span th:text="${#temporals.format(s.quarterlyPeriod.periodEnd, 'd MMM yyyy')}"></span>)
+                            </td>
+                            <td><code th:text="${s.hmrcSubmissionId}">-</code></td>
+                            <td>
+                                <span class="badge"
+                                      th:classappend="${s.status.name() == 'ACCEPTED'} ? 'bg-success' :
+                                                     (${s.status.name() == 'REJECTED'} ? 'bg-danger' : 'bg-secondary')"
+                                      th:text="${s.status}">ACCEPTED</span>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+</html>

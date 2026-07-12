@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout/main}">
+<head><title>Review Submission</title></head>
+<body>
+<div layout:fragment="content">
+    <a th:href="@{/dashboard}" class="text-muted text-decoration-none mb-3 d-block">
+        <i class="bi bi-arrow-left me-1"></i>Back to dashboard
+    </a>
+
+    <div class="row g-4">
+        <!-- Review Summary Panel -->
+        <div class="col-lg-8">
+            <div class="card border-0 shadow-sm mb-4">
+                <div class="card-header bg-white py-3">
+                    <h4 class="fw-bold mb-0">Review Quarterly Submission</h4>
+                    <p class="text-muted mb-0">
+                        <span th:text="${business.tradingName ?: business.businessType.displayLabel}">Business</span>
+                        &middot; Quarter <span th:text="${period.quarterNumber}">1</span> Update
+                    </p>
+                </div>
+                <div class="card-body">
+                    <!-- Period Dates Alert -->
+                    <div class="alert alert-info py-2 mb-4 small d-flex align-items-center">
+                        <i class="bi bi-calendar-event me-2 fs-5"></i>
+                        <span>
+                            Summarising records from
+                            <strong th:text="${#temporals.format(period.periodStart, 'd MMM yyyy')}"></strong> to
+                            <strong th:text="${#temporals.format(period.periodEnd, 'd MMM yyyy')}"></strong>.
+                        </span>
+                    </div>
+
+                    <!-- Category Breakdown -->
+                    <div class="mb-4">
+                        <h5 class="fw-semibold mb-3 border-bottom pb-2">Category Summary</h5>
+                        <div class="row g-3">
+                            <!-- Income Column -->
+                            <div class="col-md-6 border-end">
+                                <h6 class="text-success fw-bold mb-3"><i class="bi bi-plus-circle me-1"></i>Income Categories</h6>
+                                <div th:if="${incomeByCategory == null or incomeByCategory.isEmpty()}" class="text-muted py-2 small">
+                                    No income recorded in this period.
+                                </div>
+                                <div th:each="entry : ${incomeByCategory}" class="d-flex justify-content-between mb-2 small pe-3">
+                                    <span th:text="${entry.key}">Category</span>
+                                    <span class="fw-semibold text-success">£<span th:text="${#numbers.formatDecimal(entry.value, 1, 'COMMA', 2, 'POINT')}">0.00</span></span>
+                                </div>
+                                <hr class="me-3">
+                                <div class="d-flex justify-content-between fw-bold pe-3">
+                                    <span>Total Income</span>
+                                    <span class="text-success">£<span th:text="${#numbers.formatDecimal(totalIncome, 1, 'COMMA', 2, 'POINT')}">0.00</span></span>
+                                </div>
+                            </div>
+
+                            <!-- Expense Column -->
+                            <div class="col-md-6">
+                                <h6 class="text-danger fw-bold mb-3"><i class="bi bi-dash-circle me-1"></i>Expense Categories</h6>
+                                <div th:if="${expensesByCategory == null or expensesByCategory.isEmpty()}" class="text-muted py-2 small">
+                                    No expenses recorded in this period.
+                                </div>
+                                <div th:each="entry : ${expensesByCategory}" class="d-flex justify-content-between mb-2 small">
+                                    <span th:text="${entry.key}">Category</span>
+                                    <span class="fw-semibold text-danger">£<span th:text="${#numbers.formatDecimal(entry.value, 1, 'COMMA', 2, 'POINT')}">0.00</span></span>
+                                </div>
+                                <hr>
+                                <div class="d-flex justify-content-between fw-bold">
+                                    <span>Total Expenses</span>
+                                    <span class="text-danger">£<span th:text="${#numbers.formatDecimal(totalExpenses, 1, 'COMMA', 2, 'POINT')}">0.00</span></span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Net Profit Summary Banner -->
+                    <div class="bg-light rounded-3 p-3 mb-4 d-flex justify-content-between align-items-center">
+                        <span class="fw-semibold fs-5"><i class="bi bi-graph-up-arrow text-primary me-2"></i>Estimated Net Profit</span>
+                        <span class="fw-bold text-primary fs-4">
+                            £<span th:text="${#numbers.formatDecimal(totalIncome.subtract(totalExpenses), 1, 'COMMA', 2, 'POINT')}">0.00</span>
+                        </span>
+                    </div>
+
+                    <!-- Detailed Records Collapsible List -->
+                    <div class="accordion" id="recordsAccordion">
+                        <div class="accordion-item border-0">
+                            <h2 class="accordion-header" id="headingRecords">
+                                <button class="accordion-button collapsed px-0 bg-transparent text-primary fw-semibold" type="button" data-bs-toggle="collapse" data-bs-target="#collapseRecords">
+                                    <i class="bi bi-list-nested me-2"></i>View individual transactions included in this period (<span th:text="${#lists.size(incomeRecords) + #lists.size(expenseRecords)}">0</span>)
+                                </button>
+                            </h2>
+                            <div id="collapseRecords" class="accordion-collapse collapse" data-bs-parent="#recordsAccordion">
+                                <div class="accordion-body px-0 pt-3">
+                                    <div class="table-responsive">
+                                        <table class="table table-sm table-hover">
+                                            <thead>
+                                                <tr>
+                                                    <th>Date</th>
+                                                    <th>Type</th>
+                                                    <th>Category</th>
+                                                    <th>Description</th>
+                                                    <th class="text-end">Amount</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                <tr th:each="r : ${incomeRecords}">
+                                                    <td th:text="${#temporals.format(r.transactionDate, 'dd MMM yyyy')}">Date</td>
+                                                    <td><span class="badge bg-success-subtle text-success">Income</span></td>
+                                                    <td th:text="${r.incomeCategory}">Category</td>
+                                                    <td th:text="${r.description ?: '-'}">Description</td>
+                                                    <td class="text-end fw-semibold text-success">£<span th:text="${#numbers.formatDecimal(r.amount, 1, 'COMMA', 2, 'POINT')}">0.00</span></td>
+                                                </tr>
+                                                <tr th:each="r : ${expenseRecords}">
+                                                    <td th:text="${#temporals.format(r.transactionDate, 'dd MMM yyyy')}">Date</td>
+                                                    <td><span class="badge bg-danger-subtle text-danger">Expense</span></td>
+                                                    <td th:text="${r.expenseCategory}">Category</td>
+                                                    <td th:text="${r.description ?: '-'}">Description</td>
+                                                    <td class="text-end fw-semibold text-danger">£<span th:text="${#numbers.formatDecimal(r.amount, 1, 'COMMA', 2, 'POINT')}">0.00</span></td>
+                                                </tr>
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Submit Panel -->
+        <div class="col-lg-4">
+            <div class="card border-0 shadow-sm position-sticky" style="top: 20px;">
+                <div class="card-body p-4">
+                    <h5 class="fw-bold mb-3">Declaration</h5>
+                    <p class="text-muted small mb-4">
+                        By submitting this update to HMRC, you declare that the information is correct and complete to the best of your knowledge.
+                    </p>
+
+                    <div class="border rounded-3 p-3 mb-4 bg-light">
+                        <div class="d-flex justify-content-between mb-2">
+                            <span class="small text-muted">Submission due</span>
+                            <span class="small fw-semibold" th:text="${#temporals.format(period.dueDate, 'd MMMM yyyy')}">7 November</span>
+                        </div>
+                        <div class="d-flex justify-content-between">
+                            <span class="small text-muted">HMRC Status</span>
+                            <span class="badge bg-warning text-dark">Ready to Send</span>
+                        </div>
+                    </div>
+
+                    <form th:action="@{'/submissions/submit/' + ${period.id}}" method="post">
+                        <button type="submit" class="btn btn-primary btn-lg w-100 py-3 mb-3">
+                            <i class="bi bi-send me-2"></i>Submit to HMRC
+                        </button>
+                    </form>
+                    
+                    <p class="text-center text-muted small mb-0">
+                        <i class="bi bi-shield-check text-success me-1"></i> Encrypted transmission
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+</html>

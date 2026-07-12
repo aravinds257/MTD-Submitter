@@ -95,19 +95,23 @@
             <!-- Quarterly Status -->
             <div class="row g-2 mb-4">
                 <div th:each="qp : ${summary.quarters}" class="col-3">
-                    <div class="rounded-3 p-3 text-center"
-                         th:classappend="${qp.status.name() == 'FULFILLED'} ? 'bg-success bg-opacity-10' :
-                                        (${qp.status.name() == 'OVERDUE'} ? 'bg-danger bg-opacity-10' :
-                                        (${qp.dueDate.isBefore(T(java.time.LocalDate).now().plusDays(30))} ? 'bg-warning bg-opacity-10' : 'bg-secondary bg-opacity-10'))">
-                        <i class="bi fs-5"
-                           th:classappend="${qp.status.name() == 'FULFILLED'} ? 'bi-check-circle-fill text-success' :
-                                          (${qp.status.name() == 'OVERDUE'} ? 'bi-x-circle-fill text-danger' :
-                                          'bi-circle text-secondary')"></i>
-                        <div class="small fw-semibold mt-1">
-                            Q<span th:text="${qp.quarterNumber}">1</span>
+                    <a th:href="${qp.status.name() != 'FULFILLED'} ? @{'/submissions/review/' + ${qp.id}} : '#'"
+                       class="text-decoration-none text-dark"
+                       th:style="${qp.status.name() == 'FULFILLED'} ? 'pointer-events: none;' : ''">
+                        <div class="rounded-3 p-3 text-center"
+                             th:classappend="${qp.status.name() == 'FULFILLED'} ? 'bg-success bg-opacity-10' :
+                                            (${qp.status.name() == 'OVERDUE'} ? 'bg-danger bg-opacity-10' :
+                                            (${qp.dueDate.isBefore(T(java.time.LocalDate).now().plusDays(30))} ? 'bg-warning bg-opacity-10' : 'bg-secondary bg-opacity-10'))">
+                            <i class="bi fs-5"
+                               th:classappend="${qp.status.name() == 'FULFILLED'} ? 'bi-check-circle-fill text-success' :
+                                              (${qp.status.name() == 'OVERDUE'} ? 'bi-x-circle-fill text-danger' :
+                                              'bi-circle text-secondary')"></i>
+                            <div class="small fw-semibold mt-1">
+                                Q<span th:text="${qp.quarterNumber}">1</span>
+                            </div>
+                            <div class="small text-muted" th:text="${qp.status.displayLabel}">Open</div>
                         </div>
-                        <div class="small text-muted" th:text="${qp.status.displayLabel}">Open</div>
-                    </div>
+                    </a>
                 </div>
             </div>
 
