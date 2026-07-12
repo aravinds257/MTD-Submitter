@@ -25,9 +25,11 @@ public class HmrcToken {
     @JoinColumn(name = "user_id", nullable = false, unique = true)
     private User user;
 
+    @Convert(converter = com.mtdsubmitter.security.EncryptionConverter.class)
     @Column(nullable = false)
     private String accessTokenEncrypted;
 
+    @Convert(converter = com.mtdsubmitter.security.EncryptionConverter.class)
     @Column(nullable = false)
     private String refreshTokenEncrypted;
 

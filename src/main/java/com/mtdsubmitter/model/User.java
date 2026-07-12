@@ -33,8 +33,10 @@ public class User {
 
     private String fullName;
 
+    @Convert(converter = com.mtdsubmitter.security.EncryptionConverter.class)
     private String ninoEncrypted;
 
+    @Convert(converter = com.mtdsubmitter.security.EncryptionConverter.class)
     private String utrEncrypted;
 
     private String hmrcUserId;
