@@ -53,3 +53,10 @@ jobs:
         region: ${{ env.REGION }}
         image: europe-west2-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.REPOSITORY }}/${{ env.SERVICE_NAME }}:${{ github.sha }}
         flags: '--allow-unauthenticated'
+        env_vars: |
+          SPRING_PROFILES_ACTIVE=prod
+          DATABASE_URL=${{ secrets.DB_URL }}
+          DATABASE_USERNAME=${{ secrets.DB_USERNAME }}
+          DATABASE_PASSWORD=${{ secrets.DB_PASSWORD }}
+          JASYPT_PASSWORD=${{ secrets.JASYPT_PASSWORD }}
+
