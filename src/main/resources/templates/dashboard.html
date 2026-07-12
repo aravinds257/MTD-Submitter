@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout/main}">
+<head>
+    <title>Dashboard</title>
+</head>
+<body>
+<div layout:fragment="content">
+
+    <!-- Welcome & HMRC Connection Banner -->
+    <div th:if="${!hmrcConnected}" class="alert alert-warning d-flex align-items-center mb-4">
+        <i class="bi bi-exclamation-triangle-fill me-3 fs-4"></i>
+        <div class="flex-grow-1">
+            <strong>Connect to HMRC</strong> — Link your Government Gateway account to start submitting quarterly updates.
+        </div>
+        <a th:href="@{/hmrc/connect}" class="btn btn-warning ms-3">
+            <i class="bi bi-link-45deg me-1"></i>Connect now
+        </a>
+    </div>
+
+    <!-- Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h2 class="fw-bold mb-1">Dashboard</h2>
+            <p class="text-muted mb-0" th:if="${currentTaxYear}">
+                Tax Year <span th:text="${currentTaxYear.label}">2026-27</span>
+            </p>
+        </div>
+        <div class="d-flex gap-2">
+            <a th:href="@{/income/add}" class="btn btn-success">
+                <i class="bi bi-plus-circle me-1"></i>Add Income
+            </a>
+            <a th:href="@{/expenses/add}" class="btn btn-outline-danger">
+                <i class="bi bi-plus-circle me-1"></i>Add Expense
+            </a>
+        </div>
+    </div>
+
+    <!-- Deadline Banner -->
+    <div th:if="${nextDeadline}" class="card border-0 shadow-sm mb-4"
+         th:classappend="${daysUntilDeadline <= 14} ? 'border-start border-4 border-danger' : 'border-start border-4 border-primary'">
+        <div class="card-body d-flex align-items-center">
+            <div class="rounded-circle p-3 me-3"
+                 th:classappend="${daysUntilDeadline <= 14} ? 'bg-danger bg-opacity-10' : 'bg-primary bg-opacity-10'">
+                <i class="bi bi-clock fs-3"
+                   th:classappend="${daysUntilDeadline <= 14} ? 'text-danger' : 'text-primary'"></i>
+            </div>
+            <div>
+                <h5 class="mb-1 fw-semibold">
+                    Next deadline:
+                    <span th:text="${#temporals.format(nextDeadline, 'd MMMM yyyy')}">7 November 2026</span>
+                </h5>
+                <p class="mb-0 text-muted">
+                    <span th:text="${daysUntilDeadline}">34</span> days remaining
+                    <span th:if="${daysUntilDeadline <= 7}" class="badge bg-danger ms-2">Urgent!</span>
+                    <span th:if="${daysUntilDeadline > 7 and daysUntilDeadline <= 30}" class="badge bg-warning text-dark ms-2">Due soon</span>
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <!-- No Businesses State -->
+    <div th:if="${#lists.isEmpty(businesses)}" class="card border-0 shadow-sm">
+        <div class="card-body text-center py-5">
+            <i class="bi bi-building fs-1 text-muted mb-3"></i>
+            <h4 class="fw-semibold">No businesses yet</h4>
+            <p class="text-muted mb-4">Add your self-employment or property income source to get started.</p>
+            <a th:href="@{/businesses/add}" class="btn btn-primary btn-lg">
+                <i class="bi bi-plus-circle me-2"></i>Add your first business
+            </a>
+        </div>
+    </div>
+
+    <!-- Business Cards -->
+    <div th:each="summary : ${businessSummaries}" class="card border-0 shadow-sm mb-4">
+        <div class="card-header bg-white border-bottom py-3">
+            <div class="d-flex align-items-center justify-content-between">
+                <div class="d-flex align-items-center">
+                    <div class="rounded-circle bg-primary bg-opacity-10 p-2 me-3">
+                        <i class="bi fs-5 text-primary"
+                           th:classappend="${summary.business.businessType.name() == 'SELF_EMPLOYMENT'} ? 'bi-briefcase' : 'bi-house'"></i>
+                    </div>
+                    <div>
+                        <h5 class="mb-0 fw-semibold" th:text="${summary.business.tradingName ?: summary.business.businessType.displayLabel}">Business Name</h5>
+                        <small class="text-muted" th:text="${summary.business.businessType.displayLabel}">Self-Employment</small>
+                    </div>
+                </div>
+                <a th:href="@{'/businesses/' + ${summary.business.id}}" class="btn btn-sm btn-outline-secondary">
+                    <i class="bi bi-gear"></i>
+                </a>
+            </div>
+        </div>
+        <div class="card-body">
+            <!-- Quarterly Status -->
+            <div class="row g-2 mb-4">
+                <div th:each="qp : ${summary.quarters}" class="col-3">
+                    <div class="rounded-3 p-3 text-center"
+                         th:classappend="${qp.status.name() == 'FULFILLED'} ? 'bg-success bg-opacity-10' :
+                                        (${qp.status.name() == 'OVERDUE'} ? 'bg-danger bg-opacity-10' :
+                                        (${qp.dueDate.isBefore(T(java.time.LocalDate).now().plusDays(30))} ? 'bg-warning bg-opacity-10' : 'bg-secondary bg-opacity-10'))">
+                        <i class="bi fs-5"
+                           th:classappend="${qp.status.name() == 'FULFILLED'} ? 'bi-check-circle-fill text-success' :
+                                          (${qp.status.name() == 'OVERDUE'} ? 'bi-x-circle-fill text-danger' :
+                                          'bi-circle text-secondary')"></i>
+                        <div class="small fw-semibold mt-1">
+                            Q<span th:text="${qp.quarterNumber}">1</span>
+                        </div>
+                        <div class="small text-muted" th:text="${qp.status.displayLabel}">Open</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Financial Summary -->
+            <div class="row g-3">
+                <div class="col-md-4">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <span class="text-muted"><i class="bi bi-arrow-down-circle text-success me-1"></i>Income YTD</span>
+                        <span class="fw-semibold text-success" th:text="'£' + ${#numbers.formatDecimal(summary.totalIncome, 1, 'COMMA', 2, 'POINT')}">£0.00</span>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <span class="text-muted"><i class="bi bi-arrow-up-circle text-danger me-1"></i>Expenses YTD</span>
+                        <span class="fw-semibold text-danger" th:text="'£' + ${#numbers.formatDecimal(summary.totalExpenses, 1, 'COMMA', 2, 'POINT')}">£0.00</span>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <span class="fw-medium"><i class="bi bi-graph-up-arrow text-primary me-1"></i>Est. Profit</span>
+                        <span class="fw-bold text-primary" th:text="'£' + ${#numbers.formatDecimal(summary.estimatedProfit, 1, 'COMMA', 2, 'POINT')}">£0.00</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Quick Links -->
+    <div th:if="${!#lists.isEmpty(businesses)}" class="row g-3 mt-2">
+        <div class="col-md-4">
+            <a th:href="@{/submissions}" class="card border-0 shadow-sm text-decoration-none h-100">
+                <div class="card-body d-flex align-items-center">
+                    <i class="bi bi-send text-primary fs-4 me-3"></i>
+                    <div>
+                        <h6 class="mb-0 fw-semibold text-dark">Submission History</h6>
+                        <small class="text-muted">View past submissions</small>
+                    </div>
+                </div>
+            </a>
+        </div>
+        <div class="col-md-4">
+            <a th:href="@{/import}" class="card border-0 shadow-sm text-decoration-none h-100">
+                <div class="card-body d-flex align-items-center">
+                    <i class="bi bi-file-earmark-arrow-up text-primary fs-4 me-3"></i>
+                    <div>
+                        <h6 class="mb-0 fw-semibold text-dark">Import CSV</h6>
+                        <small class="text-muted">Upload income & expenses</small>
+                    </div>
+                </div>
+            </a>
+        </div>
+        <div class="col-md-4">
+            <a th:href="@{/settings}" class="card border-0 shadow-sm text-decoration-none h-100">
+                <div class="card-body d-flex align-items-center">
+                    <i class="bi bi-gear text-primary fs-4 me-3"></i>
+                    <div>
+                        <h6 class="mb-0 fw-semibold text-dark">Settings</h6>
+                        <small class="text-muted">Profile & HMRC connection</small>
+                    </div>
+                </div>
+            </a>
+        </div>
+    </div>
+
+</div>
+</body>
+</html>
