@@ -6,7 +6,7 @@ A web application for submitting **Making Tax Digital (MTD) for Income Tax Self 
 
 | Layer          | Technology                                   |
 |----------------|----------------------------------------------|
-| Runtime        | Java 21                                      |
+| Runtime        | Java 17                                      |
 | Framework      | Spring Boot 3.4.1                            |
 | Templating     | Thymeleaf + Layout Dialect                   |
 | Security       | Spring Security + OAuth2 (HMRC)              |
@@ -23,7 +23,7 @@ A web application for submitting **Making Tax Digital (MTD) for Income Tax Self 
 
 ## Prerequisites
 
-- **Java 21** (Eclipse Temurin or equivalent)
+- **Java 17** (Eclipse Temurin or equivalent)
 - **Maven 3.9+**
 - **Docker & Docker Compose** (for local PostgreSQL)
 
@@ -110,3 +110,10 @@ docker run -p 8080:8080 \
 ## License
 
 Proprietary. All rights reserved.
+
+## Deployment
+
+This application is deployed automatically to **Google Cloud Run** using GitHub Actions on every push to the `main` branch. 
+
+Configuration secrets (`GCP_PROJECT_ID` and `GCP_SA_KEY`) are managed in the GitHub Repository Settings.
+
