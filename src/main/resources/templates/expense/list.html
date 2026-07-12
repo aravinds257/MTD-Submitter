@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout/main}">
+<head><title>Expenses</title></head>
+<body>
+<div layout:fragment="content">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2 class="fw-bold"><i class="bi bi-arrow-up-circle text-danger me-2"></i>Expenses</h2>
+        <a th:href="@{/expenses/add}" class="btn btn-outline-danger">
+            <i class="bi bi-plus-circle me-1"></i>Add Expense
+        </a>
+    </div>
+
+    <!-- Business Selector -->
+    <div class="card border-0 shadow-sm mb-4" th:if="${!#lists.isEmpty(businesses)}">
+        <div class="card-body">
+            <form th:action="@{/expenses}" method="get" class="d-flex align-items-center gap-3">
+                <label class="fw-medium text-nowrap">Select business:</label>
+                <select name="businessId" class="form-select" onchange="this.form.submit()">
+                    <option value="">Choose...</option>
+                    <option th:each="b : ${businesses}" th:value="${b.id}"
+                            th:text="${b.tradingName ?: b.businessType.displayLabel}"
+                            th:selected="${b.id == selectedBusinessId}"></option>
+                </select>
+            </form>
+        </div>
+    </div>
+
+    <!-- Category Breakdown -->
+    <div th:if="${totalsByCategory != null and !totalsByCategory.isEmpty()}" class="card border-0 shadow-sm mb-4">
+        <div class="card-header bg-white py-3">
+            <h6 class="fw-semibold mb-0">Expenses by HMRC Category</h6>
+        </div>
+        <div class="card-body">
+            <div th:each="entry : ${totalsByCategory}" class="d-flex justify-content-between align-items-center mb-2">
+                <span class="text-muted" th:text="${entry.key}">Category</span>
+                <span class="fw-semibold text-danger">£<span th:text="${#numbers.formatDecimal(entry.value, 1, 'COMMA', 2, 'POINT')}">0.00</span></span>
+            </div>
+            <hr>
+            <div class="d-flex justify-content-between align-items-center">
+                <span class="fw-bold">Total Expenses</span>
+                <span class="fw-bold text-danger fs-5">£<span th:text="${#numbers.formatDecimal(total, 1, 'COMMA', 2, 'POINT')}">0.00</span></span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Records Table -->
+    <div th:if="${records != null}" class="card border-0 shadow-sm">
+        <div class="card-header bg-white d-flex justify-content-between align-items-center py-3">
+            <span class="fw-semibold">
+                Tax Year <span th:text="${taxYear.label}">2026-27</span>
+                &middot; <span th:text="${#lists.size(records)}">0</span> records
+            </span>
+        </div>
+        <div class="card-body p-0">
+            <div th:if="${#lists.isEmpty(records)}" class="text-center py-5">
+                <i class="bi bi-inbox text-muted fs-1"></i>
+                <p class="text-muted mt-2">No expenses recorded yet.</p>
+                <a th:href="@{/expenses/add}" class="btn btn-outline-danger">Add your first expense</a>
+            </div>
+            <div th:if="${!#lists.isEmpty(records)}" class="table-responsive">
+                <table class="table table-hover mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Date</th>
+                            <th>Description</th>
+                            <th>Category</th>
+                            <th class="text-end">Amount</th>
+                            <th></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr th:each="record : ${records}">
+                            <td th:text="${#temporals.format(record.transactionDate, 'dd MMM yyyy')}">01 Jul 2026</td>
+                            <td th:text="${record.description ?: '-'}" class="text-truncate" style="max-width: 250px;">Office supplies</td>
+                            <td><span class="badge bg-danger bg-opacity-10 text-danger" th:text="${record.expenseCategory}">adminCosts</span></td>
+                            <td class="text-end fw-semibold">£<span th:text="${#numbers.formatDecimal(record.amount, 1, 'COMMA', 2, 'POINT')}">0.00</span></td>
+                            <td class="text-end">
+                                <form th:action="@{'/expenses/' + ${record.id} + '/delete'}" method="post" class="d-inline"
+                                      onsubmit="return confirm('Delete this expense record?')">
+                                    <input type="hidden" name="businessId" th:value="${selectedBusinessId}">
+                                    <button type="submit" class="btn btn-sm btn-outline-danger">
+                                        <i class="bi bi-trash"></i>
+                                    </button>
+                                </form>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+</html>

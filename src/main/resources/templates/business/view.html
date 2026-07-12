@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout/main}">
+<head><title>Business Details</title></head>
+<body>
+<div layout:fragment="content">
+    <a th:href="@{/businesses}" class="text-muted text-decoration-none mb-3 d-block">
+        <i class="bi bi-arrow-left me-1"></i>Back to businesses
+    </a>
+
+    <div class="card border-0 shadow-sm">
+        <div class="card-body p-4">
+            <div class="d-flex align-items-center justify-content-between mb-4">
+                <div class="d-flex align-items-center">
+                    <div class="rounded-circle bg-primary bg-opacity-10 p-3 me-3">
+                        <i class="bi fs-3 text-primary"
+                           th:classappend="${business.businessType.name() == 'SELF_EMPLOYMENT'} ? 'bi-briefcase' : 'bi-house'"></i>
+                    </div>
+                    <div>
+                        <h3 class="fw-bold mb-0" th:text="${business.tradingName ?: 'Unnamed'}">Business Name</h3>
+                        <span class="text-muted" th:text="${business.businessType.displayLabel}">Self-Employment</span>
+                        <span class="badge bg-secondary ms-2" th:text="${business.accountingType.displayLabel}">Cash</span>
+                    </div>
+                </div>
+            </div>
+
+            <div th:if="${business.description}" class="mb-4">
+                <h6 class="text-muted">Description</h6>
+                <p th:text="${business.description}">Description here</p>
+            </div>
+
+            <div class="row g-3 mb-4">
+                <div class="col-md-6">
+                    <div class="bg-light rounded-3 p-3">
+                        <small class="text-muted">HMRC Business ID</small>
+                        <p class="fw-semibold mb-0" th:text="${business.hmrcBusinessId ?: 'Not linked'}">-</p>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="bg-light rounded-3 p-3">
+                        <small class="text-muted">Created</small>
+                        <p class="fw-semibold mb-0" th:text="${#temporals.format(business.createdAt, 'dd MMM yyyy')}">-</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="d-flex gap-2">
+                <a th:href="@{'/income?businessId=' + ${business.id}}" class="btn btn-success">
+                    <i class="bi bi-arrow-down-circle me-1"></i>View Income
+                </a>
+                <a th:href="@{'/expenses?businessId=' + ${business.id}}" class="btn btn-outline-danger">
+                    <i class="bi bi-arrow-up-circle me-1"></i>View Expenses
+                </a>
+                <form th:action="@{'/businesses/' + ${business.id} + '/deactivate'}" method="post" class="ms-auto"
+                      onsubmit="return confirm('Are you sure you want to remove this business?')">
+                    <button type="submit" class="btn btn-outline-secondary">
+                        <i class="bi bi-trash me-1"></i>Remove
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+</html>

@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout/main}">
+<head><title>Add Business</title></head>
+<body>
+<div layout:fragment="content">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <a th:href="@{/businesses}" class="text-muted text-decoration-none mb-3 d-block">
+                <i class="bi bi-arrow-left me-1"></i>Back to businesses
+            </a>
+            <div class="card border-0 shadow-sm">
+                <div class="card-body p-4">
+                    <h3 class="fw-bold mb-4">Add a business</h3>
+
+                    <form th:action="@{/businesses/add}" th:object="${businessForm}" method="post">
+                        <div class="mb-3">
+                            <label for="businessType" class="form-label fw-medium">Business type</label>
+                            <select class="form-select form-select-lg" id="businessType" th:field="*{businessType}"
+                                    th:classappend="${#fields.hasErrors('businessType')} ? 'is-invalid' : ''">
+                                <option value="">Select type...</option>
+                                <option th:each="type : ${businessTypes}" th:value="${type}" th:text="${type.displayLabel}"></option>
+                            </select>
+                            <div class="invalid-feedback" th:if="${#fields.hasErrors('businessType')}" th:errors="*{businessType}"></div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="tradingName" class="form-label fw-medium">Business / trading name</label>
+                            <input type="text" class="form-control form-control-lg" id="tradingName"
+                                   th:field="*{tradingName}" placeholder="e.g., Smith's Plumbing, 42 Oak Street"
+                                   th:classappend="${#fields.hasErrors('tradingName')} ? 'is-invalid' : ''">
+                            <div class="invalid-feedback" th:if="${#fields.hasErrors('tradingName')}" th:errors="*{tradingName}"></div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="accountingType" class="form-label fw-medium">Accounting method</label>
+                            <select class="form-select" id="accountingType" th:field="*{accountingType}">
+                                <option th:each="type : ${accountingTypes}" th:value="${type}" th:text="${type.displayLabel}"></option>
+                            </select>
+                            <div class="form-text">
+                                <strong>Cash basis</strong> (recommended for most sole traders) — record income when received, expenses when paid.
+                            </div>
+                        </div>
+
+                        <div class="mb-4">
+                            <label for="description" class="form-label fw-medium">Description <span class="text-muted">(optional)</span></label>
+                            <textarea class="form-control" id="description" th:field="*{description}"
+                                      rows="2" placeholder="Brief description of the business"></textarea>
+                        </div>
+
+                        <button type="submit" class="btn btn-primary btn-lg w-100">Add business</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+</html>
